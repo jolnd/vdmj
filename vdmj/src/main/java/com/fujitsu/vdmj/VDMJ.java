@@ -76,8 +76,10 @@ abstract public class VDMJ
 		List<String> largs = Arrays.asList(args);
 		VDMJ controller = null;
 		Dialect dialect = Dialect.VDM_SL;
-		String remoteName = null;
+		String remoteControlName = null;
 		Class<RemoteControl> remoteClass = null;
+		String remoteSimulationName = null;
+		Class<RemoteSimulation> remoteSimulation = null;
 		String defaultName = null;
 
 		Properties.init();		// Read properties file, if any
@@ -239,11 +241,23 @@ abstract public class VDMJ
     			if (i.hasNext())
     			{
     				interpret = true;
-    				remoteName = i.next();
+    				remoteControlName = i.next();
     			}
     			else
     			{
     				usage("-remote option requires a Java classname");
+    			}
+    		}
+    		else if (arg.equals("-simulation"))
+    		{
+    			if (i.hasNext())
+    			{
+    				interpret = true;
+    				remoteSimulationName = i.next();
+    			}
+    			else
+    			{
+    				usage("-simulation option requires a Java classname");
     			}
     		}
     		else if (arg.equals("-default"))
@@ -360,15 +374,39 @@ abstract public class VDMJ
 		{
 			usage("The -log option can only be used with -vdmrt");
 		}
-
-		if (remoteName != null)
+		
+		if (remoteControlName != null && remoteSimulationName != null)
 		{
-			remoteClass = getRemoteClass(remoteName);
+			usage("The -remote and -simulation options cannot be used together");
+		}
+		
+		if (remoteSimulationName != null && !(controller instanceof VDMRT))
+		{
+			usage("The -simulation option can only be used with -vdmrt");
+		}
+
+		if (remoteControlName != null)
+		{
+			remoteClass = getRemoteClass(remoteControlName);
+		}
+
+		if (remoteSimulationName != null)
+		{
+			remoteSimulation = getRemoteClass(remoteSimulationName);
+			
+			try
+			{
+				remoteSimulation.getDeclaredConstructor().newInstance();
+			}
+			catch (Exception e)
+			{
+				usage("Cannot instantiate simulation: " + e.getMessage());
+			}
 		}
 
 		ExitStatus status = null;
 
-		if (filenames.isEmpty() && (!interpret || remoteClass != null))
+		if (filenames.isEmpty() && (!interpret || remoteClass != null || remoteSimulation != null))
 		{
 			usage("You didn't specify any files");
 			status = ExitStatus.EXIT_ERRORS;
@@ -399,7 +437,7 @@ abstract public class VDMJ
         					{
         						try
 								{
-									RemoteControl remote = remoteClass.newInstance();
+									RemoteControl remote = remoteClass.getDeclaredConstructor().newInstance();
 									Interpreter i = controller.getInterpreter();
 
 									if (defaultName != null)
@@ -427,7 +465,7 @@ abstract public class VDMJ
 								}
 								catch (InstantiationException e)
 								{
-									usage("Cannot instantiate " + remoteName);
+									usage("Cannot instantiate " + remoteControlName);
 								}
 								catch (Exception e)
 								{
@@ -450,11 +488,11 @@ abstract public class VDMJ
 	}
 
 	@SuppressWarnings("unchecked")
-	private static Class<RemoteControl> getRemoteClass(String remoteName)
+	private static <T> T getRemoteClass(String remoteName)
 	{
 		try
 		{
-			return (Class<RemoteControl>) ClassLoader.getSystemClassLoader().loadClass(remoteName);
+			return (T) ClassLoader.getSystemClassLoader().loadClass(remoteName);
 		}
 		catch (ClassNotFoundException e)
 		{
@@ -514,6 +552,7 @@ abstract public class VDMJ
 		System.err.println("-annotations: enable annotation processing");
 		System.err.println("-log <filename>: enable real-time event logging");
 		System.err.println("-remote <class>: enable remote control");
+		System.err.println("-simulation <class>: enable simulation control");
 		System.err.println("-verbose: display detailed startup information");
 
 		System.exit(1);
