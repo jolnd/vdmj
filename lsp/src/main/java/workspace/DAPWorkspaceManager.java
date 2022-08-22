@@ -321,7 +321,7 @@ public class DAPWorkspaceManager
 		Properties.init(LSPWorkspaceManager.PROPERTIES);
 	}
 
-	public DAPMessageList configurationDone(DAPRequest request) throws IOException
+	public DAPMessageList configurationDone(DAPRequest request)
 	{
 		try
 		{
