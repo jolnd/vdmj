@@ -42,9 +42,9 @@ associative: class "[(qualifier)]" -> multiplicity object
 ### Other compound types
 
 
-#### optinal type: "[*]"
+#### optinal type: "[]"
 #### composite type: "::" 
-#### union type: "*|*"
+#### union type: "|"
 #### product type: "*"
 
 
