@@ -24,7 +24,6 @@
 
 package plugins.VDM2UML;
 
-
 import java.util.ArrayList;
 import com.fujitsu.vdmj.lex.LexLocation;
 import com.fujitsu.vdmj.lex.Token;
@@ -39,6 +38,7 @@ import com.fujitsu.vdmj.tc.definitions.TCValueDefinition;
 import com.fujitsu.vdmj.tc.definitions.visitors.TCDefinitionVisitor;
 import com.fujitsu.vdmj.tc.lex.TCNameToken;
 import com.fujitsu.vdmj.tc.types.TCType;
+import com.fujitsu.vdmj.tc.types.visitors.TCLeafTypeVisitor;
 
 public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 {
@@ -68,19 +68,25 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 	@Override
 	public Object caseInstanceVariableDefinition(TCInstanceVariableDefinition node, Buffers arg)
 	{	
-		if (node.getType().isMap(LexLocation.ANY))
+		TCType type = node.getType();
+		TCAccessSpecifier access = node.accessSpecifier;
+		String varName = node.name.getName();
+		String className = node.classDefinition.name.getName();
+		String typeString = removeBrackets(node.getType().toString());
+		String mult = "";
+
+		type.apply(new UMLTypeVisitor(), arg);
+		
+
+		if (type.isMap(LexLocation.ANY))
 		{
 			/** Creates qualified association */
-			String mapName = node.name.getName();
-			String className = node.classDefinition.name.getName();
 
-			String mapping = removeBrackets(node.getType().toString());
-			mapping = remove(mapping, "map");
+			String mapping = remove(typeString, "map");
 			
 			String[] seg1 = mapping.split("to");
 			String qualifier = remove(seg1[0], " ");
 			String endClass = seg1[seg1.length - 1];
-			String mult = "";
 			
 			if (seg1[seg1.length - 1].contains("set"))
 			{
@@ -94,49 +100,49 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 			} else 				
 			if (seg1[seg1.length - 1].contains("seq1"))
 			{
-				mult = " \"(*)\" ";
+				mult = " \"(1..*)\" ";
 				endClass = remove(endClass, " seq1 of ");
 			}
 		
 			arg.asocs.append(className + " \"[" + qualifier +"]\"" + " -->" + 
-			mult + endClass + " : " + visibility(node.accessSpecifier) + mapName);
+			mult + endClass + " : " + visibility(access) + varName);
 			arg.asocs.append("\n");
 
-		} else if (typeContainsClass(node.getType(), arg.classes)) 
+		} else if (type.isSet(LexLocation.ANY)) 
 		{
-			/** Creates associations with no qualifier
-			 *  Does not yet account for complex types (union, product, set of (seq of *), etc.)
-			 */
-			String asocName = node.name.getName();
-			String className = node.classDefinition.name.getName();
-			String endClass = removeBrackets(node.getType().toString());
-			String mult = "";
+			/** Creates associations with no qualifier */
 			
-			if (endClass.contains("set"))
+			if (typeString.contains("set"))
 			{
 				mult = "\"*\" ";
-				endClass = remove(endClass, "set of ");
+				typeString = remove(typeString, "set of ");
 			} else
-			if (endClass.contains("seq"))
+			if (typeString.contains("seq"))
 			{
 				mult = "\"(*)\" ";
-				endClass = remove(endClass, "seq of ");
+				typeString = remove(typeString, "seq of ");
 			} else				
-			if (endClass.contains("seq1"))
+			if (typeString.contains("seq1"))
 			{
 				mult = "\"(1..*)\" ";
-				endClass = remove(endClass, "seq1 of ");
+				typeString = remove(typeString, "seq1 of ");
 			}
 		
 			arg.asocs.append(className + " --> " + 
-			mult + endClass + " : " + visibility(node.accessSpecifier) + asocName);
+			mult + typeString + " : " + visibility(access) + varName);
 			arg.asocs.append("\n");
-		} else
+		} else if (type.isSeq(LexLocation.ANY)) 
+		{
+
+		} else if (type.isSet(LexLocation.ANY)) 
+		{
+
+		}
 		{
 			arg.defs.append("\t");
-			arg.defs.append(visibility(node.accessSpecifier));
+			arg.defs.append(visibility(access));
 			arg.defs.append(" ");
-			arg.defs.append(node.name.getName() + " : " + removeBrackets(node.getType().toString()));
+			arg.defs.append(varName + " : " + typeString);
 			arg.defs.append("\n");
 		}
 		
@@ -274,7 +280,7 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 			System.out.println("No definitions");
 		else
 			for (TCDefinition def : type.definitions)
-				System.out.println("Defintion: " + def.name.toString());		
+				System.out.println("Defintion: " + def.name.toString());	
 		
 		String typeString = removeBrackets(type.toString());
 		String[] segs = typeString.split(" of | to ");

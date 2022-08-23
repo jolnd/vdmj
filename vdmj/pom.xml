@@ -31,8 +31,6 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>3.8.2</version>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -47,14 +45,11 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<includes>
-						<include>**/*Test.java</include>
-					</includes>
-				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
                 <executions>
                     <execution>
@@ -71,9 +66,6 @@
 									<Class-Path>.</Class-Path>
 								</manifestEntries>
 							</archive>
-							<finalName>
-								${project.artifactId}-${project.version}-${maven.build.timestamp}
-							</finalName>
 						</configuration>
 					</execution>
                     <execution>
@@ -91,9 +83,6 @@
                                 <include>src/main/scripts/vdmsl.sh</include>
                             </includes>
                             <classifier>docs</classifier>
-							<finalName>
-								${project.artifactId}-${project.version}-${maven.build.timestamp}
-							</finalName>
                         </configuration>
                     </execution>
 				</executions>
@@ -101,19 +90,8 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}</finalName>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
+            </plugin>
+ 		</plugins>
 	</build>
 
 </project>
