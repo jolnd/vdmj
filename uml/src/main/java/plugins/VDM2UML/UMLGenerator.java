@@ -75,7 +75,9 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 		String typeString = removeBrackets(node.getType().toString());
 		String mult = "";
 
-		type.apply(new UMLTypeVisitor(), arg);
+		UMLType umlType = new UMLType(Buffers.env);
+
+		type.apply(new UMLTypeVisitor(), umlType);
 		
 
 		if (type.isMap(LexLocation.ANY))
@@ -269,27 +271,6 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 	private String remove(String str, String remove)
 	{
 		return str.replace(remove, "");
-	}
-
-	private Boolean typeContainsClass(TCType type, ArrayList<String> classList)
-	{	
-		if (type.isClass(Buffers.env))
-			return true;
-		
-		if (type.definitions == null)
-			System.out.println("No definitions");
-		else
-			for (TCDefinition def : type.definitions)
-				System.out.println("Defintion: " + def.name.toString());	
-		
-		String typeString = removeBrackets(type.toString());
-		String[] segs = typeString.split(" of | to ");
-		for (String seg : segs)
-			if (classList.contains(seg))
-			{
-				return true;
-			}
-		return false;
 	}
 }	
 

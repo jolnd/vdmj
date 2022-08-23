@@ -45,7 +45,6 @@ public class Vdm2umlPlugin extends CommandPlugin
 
 	private StringBuilder boiler = new StringBuilder();
 
-
 	@Override
 	public boolean run(String[] argv) throws Exception
 	{
@@ -66,12 +65,7 @@ public class Vdm2umlPlugin extends CommandPlugin
 			
 			TCClassList classes = interpreter.getTC();
 
-			Buffers buffers = new Buffers(classes); 
-
-			for (TCClassDefinition cdef: classes)
-			{
-				buffers.classes.add(cdef.name.toString());
-			}
+			Buffers buffers = new Buffers(classes);
 			
 			for (TCClassDefinition cdef: classes)
 			{
