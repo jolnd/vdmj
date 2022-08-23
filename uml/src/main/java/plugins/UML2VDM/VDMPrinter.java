@@ -152,7 +152,10 @@ public class VDMPrinter {
                     }
 
                     else if (var.getIsAssociative())
+                    {
                         writer.write(var.getVisibility() + var.getName() +  " : " + var.getMulType() + var.getRelName() + ";\n");
+                    }
+                    
                     else
                         writer.write(var.getVisibility() + var.getName() + ";\n");
                         

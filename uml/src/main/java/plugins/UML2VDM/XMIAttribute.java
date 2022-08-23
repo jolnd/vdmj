@@ -6,7 +6,7 @@ import org.w3c.dom.NodeList;
 public class XMIAttribute {
     
     public enum AttTypes {type, value, var}
-    public enum MulTypes {set, seq, seq1}
+    public enum MulTypes {set, seq, set1, seq1, empty}
     public enum QualiTypes {map, inmap}
 
     private String name;
@@ -47,20 +47,21 @@ public class XMIAttribute {
     {
         NodeList relAttList = rElement.getElementsByTagName("UML:AssociationEnd");
         
-        Element relStart  = (Element) relAttList.item(0);
-        Element relEnd  = (Element) relAttList.item(1);
+        Element relStart  = (Element) relAttList.item(1);
+        Element relEnd  = (Element) relAttList.item(0);
         
-        String indicator = relEnd.getAttribute("name");
+        String indicator = relStart.getAttribute("name");
+        String mult = relEnd.getAttribute("name");
 
         if (setQualified(indicator))
         {
             this.isQualified = true;
-            String mult = relStart.getAttribute("name");
+            
             setMultType(mult);
             
-            this.startID = relEnd.getAttribute("type");  
-            this.endID = relStart.getAttribute("type");  
-            String str = relEnd.getAttribute("name");   
+            this.startID = relStart.getAttribute("type");  
+            this.endID = relEnd.getAttribute("type");  
+            String str = relStart.getAttribute("name");   
 
             if(qualiType == QualiTypes.map)
             {
@@ -73,8 +74,6 @@ public class XMIAttribute {
                 str = str.replace("[(", "");
                 str = str.replace(")]", "");
             }
-
-            
             this.qualifier = str;
         }
 
@@ -82,7 +81,7 @@ public class XMIAttribute {
         {
             this.endID = relEnd.getAttribute("type");   
             this.startID = relStart.getAttribute("type");
-            setMultType(indicator);
+            setMultType(mult);
         }      
     }
 
@@ -105,15 +104,16 @@ public class XMIAttribute {
 
     private void setMultType(String mult)
     {
-        if(mult.equals("*"))
-            this.mulType = MulTypes.set;    
-
-        if(mult.equals("(*)"))
-            this.mulType = MulTypes.seq;
-
         if(mult.equals("(1...*)") || mult.equals("(1..*)") || mult.equals("(1.*)"))
             this.mulType = MulTypes.seq1;
         
+        else if(mult.equals("(*)"))
+            this.mulType = MulTypes.seq;
+        
+        else if(mult.equals("*"))
+            this.mulType = MulTypes.set;    
+
+        else this.mulType = MulTypes.empty;
     }
 
     private void setAttType(Element aElement)
@@ -223,6 +223,15 @@ public class XMIAttribute {
         
         if (this.mulType == MulTypes.seq)
             return "seq of ";
+
+        if (this.mulType == MulTypes.seq1)
+            return "seq1 of ";
+
+        if (this.mulType == MulTypes.set1)
+            return "set1 of ";
+
+        if (this.mulType == MulTypes.empty)
+            return "";
         
         else
             return "";
