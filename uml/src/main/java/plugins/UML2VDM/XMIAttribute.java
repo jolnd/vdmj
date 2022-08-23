@@ -6,7 +6,7 @@ import org.w3c.dom.NodeList;
 public class XMIAttribute {
     
     public enum AttTypes {type, value, var}
-    public enum MulTypes {set, seq, seq1, empty}
+    public enum MulTypes {set, seq, set1, seq1, empty}
     public enum QualiTypes {map, inmap}
 
     private String name;
@@ -226,6 +226,9 @@ public class XMIAttribute {
 
         if (this.mulType == MulTypes.seq1)
             return "seq1 of ";
+
+        if (this.mulType == MulTypes.set1)
+            return "set1 of ";
 
         if (this.mulType == MulTypes.empty)
             return "";
