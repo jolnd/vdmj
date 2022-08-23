@@ -24,8 +24,6 @@
 
 package plugins.VDM2UML;
 
-import java.util.ArrayList;
-import com.fujitsu.vdmj.lex.LexLocation;
 import com.fujitsu.vdmj.lex.Token;
 import com.fujitsu.vdmj.tc.definitions.TCAccessSpecifier;
 import com.fujitsu.vdmj.tc.definitions.TCClassDefinition;
@@ -36,9 +34,7 @@ import com.fujitsu.vdmj.tc.definitions.TCInstanceVariableDefinition;
 import com.fujitsu.vdmj.tc.definitions.TCTypeDefinition;
 import com.fujitsu.vdmj.tc.definitions.TCValueDefinition;
 import com.fujitsu.vdmj.tc.definitions.visitors.TCDefinitionVisitor;
-import com.fujitsu.vdmj.tc.lex.TCNameToken;
 import com.fujitsu.vdmj.tc.types.TCType;
-import com.fujitsu.vdmj.tc.types.visitors.TCLeafTypeVisitor;
 
 public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 {
@@ -52,7 +48,6 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 	public Object caseClassDefinition(TCClassDefinition node, Buffers arg)
 	{
 		arg.defs.append("class ");
-		
 		arg.defs.append(node.name.getName());
 		arg.defs.append("\n{\n");
 
@@ -69,82 +64,55 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 	public Object caseInstanceVariableDefinition(TCInstanceVariableDefinition node, Buffers arg)
 	{	
 		TCType type = node.getType();
-		TCAccessSpecifier access = node.accessSpecifier;
+		UMLType umlType = new UMLType(Buffers.env);
+		type.apply(new UMLTypeVisitor(), umlType);
+
+		String visibility = visibility(node.accessSpecifier);
 		String varName = node.name.getName();
 		String className = node.classDefinition.name.getName();
-		String typeString = removeBrackets(node.getType().toString());
-		String mult = "";
 
-		UMLType umlType = new UMLType(Buffers.env);
-
-		type.apply(new UMLTypeVisitor(), umlType);
-		
-
-		if (type.isMap(LexLocation.ANY))
+		if (umlType.isAsoc) 
 		{
-			/** Creates qualified association */
+			/* 
+			 * Create instance variable as association 
+			 */
 
-			String mapping = remove(typeString, "map");
-			
-			String[] seg1 = mapping.split("to");
-			String qualifier = remove(seg1[0], " ");
-			String endClass = seg1[seg1.length - 1];
-			
-			if (seg1[seg1.length - 1].contains("set"))
+			arg.asocs.append(className);
+			if (!umlType.qualifier.isBlank())
 			{
-				mult = " \"*\" ";
-				endClass = remove(endClass, " set of ");
-			} else 			
-			if (seg1[seg1.length - 1].contains("seq"))
-			{
-				mult = " \"(*)\" ";
-				endClass = remove(endClass, " seq of ");
-			} else 				
-			if (seg1[seg1.length - 1].contains("seq1"))
-			{
-				mult = " \"(1..*)\" ";
-				endClass = remove(endClass, " seq1 of ");
+				arg.asocs.append(" \"[");
+				arg.asocs.append(umlType.qualifier);
+				arg.asocs.append("]\"");
 			}
-		
-			arg.asocs.append(className + " \"[" + qualifier +"]\"" + " -->" + 
-			mult + endClass + " : " + visibility(access) + varName);
-			arg.asocs.append("\n");
-
-		} else if (type.isSet(LexLocation.ANY)) 
-		{
-			/** Creates associations with no qualifier */
-			
-			if (typeString.contains("set"))
+			arg.asocs.append(" --> ");
+			if (!umlType.multiplicity.isBlank())
 			{
-				mult = "\"*\" ";
-				typeString = remove(typeString, "set of ");
-			} else
-			if (typeString.contains("seq"))
-			{
-				mult = "\"(*)\" ";
-				typeString = remove(typeString, "seq of ");
-			} else				
-			if (typeString.contains("seq1"))
-			{
-				mult = "\"(1..*)\" ";
-				typeString = remove(typeString, "seq1 of ");
+				arg.asocs.append("\"");
+				arg.asocs.append(umlType.multiplicity);
+				arg.asocs.append("\" ");
 			}
-		
-			arg.asocs.append(className + " --> " + 
-			mult + typeString + " : " + visibility(access) + varName);
+			arg.asocs.append(umlType.endClass);
+			arg.asocs.append(" : ");
+			if (!visibility.isBlank())
+			{
+				arg.asocs.append(visibility);
+				arg.asocs.append(" ");
+			}
+			arg.asocs.append(varName);
 			arg.asocs.append("\n");
-		} else if (type.isSeq(LexLocation.ANY)) 
+		} else 
 		{
+			/*
+			 * Create instance variable as attribute in class 
+			 */
 
-		} else if (type.isSet(LexLocation.ANY)) 
-		{
-
-		}
-		{
 			arg.defs.append("\t");
-			arg.defs.append(visibility(access));
-			arg.defs.append(" ");
-			arg.defs.append(varName + " : " + typeString);
+			if (!visibility.isBlank())
+			{
+				arg.defs.append(visibility);
+				arg.defs.append(" ");
+			}
+			arg.defs.append(varName + " : " + umlType.inClassType);
 			arg.defs.append("\n");
 		}
 		
@@ -154,11 +122,16 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 	@Override
 	public Object caseTypeDefinition(TCTypeDefinition node, Buffers arg)
 	{
+		TCType type = node.getType();
+		UMLType umlType = new UMLType(Buffers.env);
+		type.apply(new UMLTypeVisitor(), umlType);
+
 		arg.defs.append("\t");
 		arg.defs.append(visibility(node.accessSpecifier));
 		arg.defs.append(" ");
 		arg.defs.append(node.name.getName());
-		//arg.defs.append(node.getType());
+		arg.defs.append(" : ");
+		arg.defs.append(umlType.inClassType);
 		arg.defs.append(" <<type>>");
 		arg.defs.append("\n");		
 
@@ -252,7 +225,7 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 			res += "#";
 		
 		if (access.isStatic)
-			res += "[St]";
+			res += "<u>";
 		
 		return res;
 	}  
@@ -266,11 +239,6 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 			str = str.replace(")", "");
 
 		return str;
-	}
-
-	private String remove(String str, String remove)
-	{
-		return str.replace(remove, "");
 	}
 }	
 

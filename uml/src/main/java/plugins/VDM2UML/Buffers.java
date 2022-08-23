@@ -9,21 +9,10 @@ public class Buffers
     public StringBuilder asocs;
     public static PublicClassEnvironment env;
 
-
     public Buffers(TCClassList classList)
     {
         defs = new StringBuilder();
         asocs = new StringBuilder();
         env = new PublicClassEnvironment(classList);
     }
-
-   /*  public StringBuilder getDef()
-    {
-        return defs;
-    }
-    
-    public StringBuilder getAsoc()
-    {
-        return asocs;
-    } */
 }

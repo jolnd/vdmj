@@ -7,7 +7,8 @@ import com.fujitsu.vdmj.typechecker.PublicClassEnvironment;
 
 public class UMLType
 {
-    public Boolean isAssoc = false;
+    public Boolean isAsoc = false;
+    public Boolean isMap = false;
     public String qualifier = "";
     public String multiplicity = "";
     public String endClass = "";
