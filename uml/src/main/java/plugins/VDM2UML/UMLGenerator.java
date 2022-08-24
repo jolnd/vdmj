@@ -78,14 +78,14 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 			 */
 
 			arg.asocs.append(className);
-			if (!umlType.qualifier.isBlank())
+			if (!umlType.qualifier.isEmpty())
 			{
 				arg.asocs.append(" \"[");
 				arg.asocs.append(umlType.qualifier);
 				arg.asocs.append("]\"");
 			}
 			arg.asocs.append(" --> ");
-			if (!umlType.multiplicity.isBlank())
+			if (!umlType.multiplicity.isEmpty())
 			{
 				arg.asocs.append("\"");
 				arg.asocs.append(umlType.multiplicity);
@@ -93,7 +93,7 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 			}
 			arg.asocs.append(umlType.endClass);
 			arg.asocs.append(" : ");
-			if (!visibility.isBlank())
+			if (!visibility.isEmpty())
 			{
 				arg.asocs.append(visibility);
 				arg.asocs.append(" ");
@@ -107,7 +107,7 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 			 */
 
 			arg.defs.append("\t");
-			if (!visibility.isBlank())
+			if (!visibility.isEmpty())
 			{
 				arg.defs.append(visibility);
 				arg.defs.append(" ");
@@ -175,7 +175,7 @@ public class UMLGenerator extends TCDefinitionVisitor<Object, Buffers>
 	
 	@Override
 	public Object caseExplicitOperationDefinition(TCExplicitOperationDefinition node, Buffers arg)
-	{
+	{	
 		arg.defs.append("\t");
 		arg.defs.append(visibility(node.accessSpecifier));
 		arg.defs.append(" ");

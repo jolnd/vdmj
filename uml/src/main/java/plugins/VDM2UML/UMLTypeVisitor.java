@@ -8,6 +8,7 @@ import com.fujitsu.vdmj.tc.types.TCInMapType;
 import com.fujitsu.vdmj.tc.types.TCMapType;
 import com.fujitsu.vdmj.tc.types.TCOptionalType;
 import com.fujitsu.vdmj.tc.types.TCProductType;
+import com.fujitsu.vdmj.tc.types.TCRecordType;
 import com.fujitsu.vdmj.tc.types.TCSeqType;
 import com.fujitsu.vdmj.tc.types.TCSet1Type;
 import com.fujitsu.vdmj.tc.types.TCSeq1Type;
@@ -148,7 +149,17 @@ public class UMLTypeVisitor extends TCLeafTypeVisitor<Object, List<Object>, UMLT
         /** Set type to [] if outermost type*/
 		arg.depth++;
 		if (arg.depth < 3 && !arg.isMap)
-			arg.inClassType = "[]";
+			arg.inClassType += "[]";
+		return null;
+	}
+
+	@Override
+	public List<Object> caseRecordType(TCRecordType node, UMLType arg)
+	{
+        /** Set type to :: if outermost type*/
+		arg.depth++;
+		if (arg.depth < 3 && !arg.isMap)
+			arg.inClassType += "::";
 		return null;
 	}
 
