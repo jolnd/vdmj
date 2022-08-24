@@ -48,3 +48,6 @@ associative: class "[(qualifier)]" -> multiplicity object
 #### product type: "*"
 
 
+## TODOs
+
+- Fix declated types showing up as the "type of the type" instead of the name of type when used with an instance variable. Eg. Qualification is defined as a union, reqQuali is the type "Qualification", but shows up as just being a union.
