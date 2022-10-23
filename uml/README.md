@@ -59,27 +59,55 @@ associative: class "[(qualifier)]" -> multiplicity object
 
 --------------------------------#README NOTES------------------------------------------------
 
-TODO check if structure signifier abstraction is correct
-The Object Reference type?
-function types?
+Syntax:    type = association type
+	    
+	   association type = general association type
+			    | qualified association type
+
+	   general association type = identifier [qualification clause] --> [inheritance clause] test : -collection0
 
 
-## VDM2UML
+## Bi-directional mapping:
 
-### VDM Structure Abstraction
+
+### Basic Data Types
+
+There is a one-to-one mapping of basic VDM data types between VDM and PlantUML, 
+with the VDM symbol for the construct being represented as the type in a UML attribute or operation.
+
+
+### Set and Sequence types
+
+If the type of the elements in a set is a Class, the set is considered to be associative. 
+If the type of the elements in a set is any other type, including a compound type that refer to a class, the set is considered to be non-associative.
+
+
+
+#### Non-Associative sets and sequences:
+
+
+
+
+#### Associative sets and sequences:
+	
+
+
+### Non bi-directional mapping: VDM2UML
+
+#### VDM Structure Abstraction
 
 To avoid excessive information in the class diagram certain VDM structures are abstracted away.
 
-#### Set and Sequence Types
+##### Set and Sequence Types
 
 set of set of ClassA (defined in ClassA, no association)
 
 map set of set of alarm to set of set of expert
 
-#### Map Types
+##### Map Types
 
 
-#### Other Compound types
+##### Other Compound types
 The product, composite, union, optional and product compound types are abstracted in their UML representation, 
 by omiting the subtypes of the compound type in the UML model and instead showing the types using VDM2UML type signifiers.
 
@@ -113,7 +141,8 @@ var : nat * nat * nat * nat * nat * nat * nat;		-Expr1 : *...
 
 
 
-----------UML2VDM----------
+
+## Non bi-directional mapping: UML2VDM
 
 
 in keyword
